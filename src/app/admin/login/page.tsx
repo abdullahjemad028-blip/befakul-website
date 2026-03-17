@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function AdminLoginPage() {
+// ── Inner component — useSearchParams এখানে ──────────────────
+function LoginForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const from         = searchParams.get("from") ?? "/admin/notices";
@@ -33,7 +34,6 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Redirect to original destination or admin notices
       router.push(from);
       router.refresh();
 
@@ -73,7 +73,6 @@ export default function AdminLoginPage() {
           className="bg-white border border-gray-200 rounded-lg px-6 py-8 space-y-5"
           noValidate
         >
-          {/* Error message */}
           {error && (
             <div
               className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded"
@@ -83,7 +82,6 @@ export default function AdminLoginPage() {
             </div>
           )}
 
-          {/* Username */}
           <div>
             <label
               htmlFor="username"
@@ -99,15 +97,11 @@ export default function AdminLoginPage() {
               required
               autoComplete="username"
               className="w-full border border-gray-300 rounded px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2"
-              style={{
-                fontFamily:    "var(--font-english)",
-                outlineColor:  "var(--color-primary)",
-              }}
+              style={{ fontFamily: "var(--font-english)" }}
               placeholder="admin"
             />
           </div>
 
-          {/* Password */}
           <div>
             <label
               htmlFor="password"
@@ -123,26 +117,21 @@ export default function AdminLoginPage() {
               required
               autoComplete="current-password"
               className="w-full border border-gray-300 rounded px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2"
-              style={{
-                fontFamily:   "var(--font-english)",
-                outlineColor: "var(--color-primary)",
-              }}
+              style={{ fontFamily: "var(--font-english)" }}
               placeholder="••••••••"
             />
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={loading || !username || !password}
-            className="w-full py-2.5 text-base font-medium text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2.5 text-base font-medium text-white rounded disabled:opacity-50"
             style={{ backgroundColor: "var(--color-primary)" }}
           >
             {loading ? "লগইন হচ্ছে..." : "লগইন করুন"}
           </button>
         </form>
 
-        {/* Back to site */}
         <p className="text-center mt-6 text-sm text-gray-500">
           <a
             href="/"
@@ -155,5 +144,14 @@ export default function AdminLoginPage() {
 
       </div>
     </div>
+  );
+}
+
+// ── Page — Suspense wrapper এখানে ────────────────────────────
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <LoginForm />
+    </Suspense>
   );
 }
