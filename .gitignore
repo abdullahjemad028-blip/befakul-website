@@ -36,3 +36,10 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+
+# এগুলো থাকতেই হবে
+.env
+.env.local
+.next/
+node_modules/
