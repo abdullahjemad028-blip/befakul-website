@@ -2,26 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   BEFAKUL WEBSITE — GLOBAL STYLES
+   Befakul Madarisil Arabia Bangladesh
+   ============================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- Brand Colors --- */
+  --color-primary:       #006633;
+  --color-primary-light: #008c44;
+  --color-primary-dark:  #004d26;
+  --color-accent:        #d4a017;
+
+  /* --- Neutral Colors --- */
+  --color-bg:            #ffffff;
+  --color-bg-section:    #f5f5f5;
+  --color-text:          #1a1a1a;
+  --color-text-muted:    #555555;
+
+  /* --- Font Families (set by next/font via layout.tsx) --- */
+  /* --font-bangla          → SolaimanLipi (primary)        */
+  /* --font-bangla-fallback → Noto Sans Bengali (secondary) */
+  /* --font-english         → system sans-serif             */
+  --font-english: system-ui, -apple-system, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Base Reset ─────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── Root Typography ────────────────────────── */
+html {
+  font-size: 16px;
+  scroll-behavior: auto; /* No smooth scroll — accessibility preference */
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-bangla), var(--font-bangla-fallback), sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+/* ── English / Latin Text ───────────────────── */
+:lang(en),
+[lang="en"] {
+  font-family: var(--font-english);
+}
+
+/* ── Accessibility: Focus Ring ──────────────── */
+/* Applies to ALL keyboard-focused elements globally */
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── Accessibility: Reduced Motion ─────────── */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
+}
+
+/* ── Screen Reader Only Utility ─────────────── */
+/* Used for visually hidden but accessible text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

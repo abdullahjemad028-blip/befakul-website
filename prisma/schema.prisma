@@ -1,0 +1,163 @@
+// ============================================================
+// Befaqul Madarisil Arabia Bangladesh — Prisma Schema
+// Database: PostgreSQL
+// ORM: Prisma
+// Phase 1 — Foundation Models
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum ResultStatus {
+  PASS
+  FAIL
+}
+
+enum ExamLevel {
+  DAWRA
+  HIFZ
+  TAKMIL
+  OTHER
+}
+
+// ============================================================
+// MODEL 1 — Notice
+// ============================================================
+
+model Notice {
+  id          String    @id @default(cuid())
+
+  title_bn    String
+  body_bn     String    @db.Text
+
+  publishedAt DateTime
+  isPublished Boolean   @default(false)
+
+  isPdf       Boolean   @default(false)
+  pdfUrl      String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([publishedAt])
+  @@index([isPublished])
+  @@index([deletedAt])
+  @@index([isPublished, publishedAt, deletedAt])
+
+  @@map("notices")
+}
+
+// ============================================================
+// MODEL 2 — Exam
+// ============================================================
+
+model Exam {
+  id        String    @id @default(cuid())
+
+  name_bn   String
+  year      Int
+  level     ExamLevel
+  isActive  Boolean   @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  results   Result[]
+
+  @@index([year])
+  @@index([level])
+  @@index([isActive])
+  @@index([year, level])
+
+  @@map("exams")
+}
+
+// ============================================================
+// MODEL 3 — Result
+// ============================================================
+
+model Result {
+  id               String       @id @default(cuid())
+
+  roll             String
+  registrationNo   String
+
+  studentName_bn   String
+  status           ResultStatus
+  grade            String?
+
+  examId           String
+  exam             Exam         @relation(fields: [examId], references: [id])
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([roll])
+  @@index([registrationNo])
+  @@index([roll, registrationNo])
+  @@index([examId])
+  @@index([examId, roll])
+  @@index([examId, registrationNo])
+
+  @@map("results")
+}
+
+// ============================================================
+// MODEL 4 — Madrasa
+// ============================================================
+
+model Madrasa {
+  id               String    @id @default(cuid())
+
+  name_bn          String
+  registrationNo   String    @unique
+
+  district         String
+  division         String
+  establishedYear  Int?
+
+  isActive         Boolean   @default(true)
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  @@index([district])
+  @@index([division])
+  @@index([isActive])
+  @@index([district, division])
+  @@index([isActive, district])
+  @@index([deletedAt])
+
+  @@map("madrasas")
+}
+
+// ============================================================
+// MODEL 5 — Stat
+// ============================================================
+
+model Stat {
+  id        String   @id @default(cuid())
+
+  key       String   @unique
+  value_bn  String
+  order     Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+
+  @@map("stats")
+}

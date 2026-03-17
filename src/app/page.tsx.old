@@ -1,0 +1,87 @@
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ | অফিসিয়াল ওয়েবসাইট",
+  description:
+    "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ দেশের কওমি মাদরাসা শিক্ষাব্যবস্থার কেন্দ্রীয় বোর্ড। পরীক্ষার ফলাফল, নোটিশ, মাদরাসা তথ্য ও বোর্ড সংক্রান্ত সকল অফিসিয়াল তথ্য এখানে প্রকাশিত হয়।",
+
+  keywords: [
+    "বেফাক",
+    "কওমি মাদরাসা",
+    "বেফাক ফলাফল",
+    "বেফাক নোটিশ",
+    "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
+    "Qawmi Madrasa Board Bangladesh",
+  ],
+
+  authors: [{ name: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ" }],
+  creator: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
+  publisher: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
+
+  robots: {
+    index: true,
+    follow: true,
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "bn_BD",
+    url: "https://befaq.edu.bd",
+    title: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
+    description:
+      "কওমি মাদরাসা শিক্ষাব্যবস্থার কেন্দ্রীয় তত্ত্বাবধায়ক বোর্ড — ফলাফল, নোটিশ ও অফিসিয়াল তথ্য।",
+    siteName: "বেফাক বাংলাদেশ",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
+    description:
+      "বাংলাদেশের কওমি মাদরাসা শিক্ষাব্যবস্থার অফিসিয়াল বোর্ড ওয়েবসাইট।",
+  },
+
+  alternates: {
+    canonical: "https://befaq.edu.bd",
+  },
+};
+
+
+
+
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+
+import HeroSection from "@/components/home/HeroSection";
+import AboutSection from "@/components/home/AboutSection";
+import CoreResponsibilitiesSection from "@/components/home/CoreResponsibilitiesSection";
+import ExamResultsSection from "@/components/home/ExamResultsSection";
+import NoticeBoardSection from "@/components/home/NoticeBoardSection";
+import StatsSection from "@/components/home/StatsSection";
+
+export default function HomePage() {
+  return (
+    <>
+      <Header />
+
+      <main>
+        <HeroSection />
+        <AboutSection />
+        <CoreResponsibilitiesSection />
+        <ExamResultsSection />
+        <NoticeBoardSection />
+        <StatsSection />
+      </main>
+
+      <Footer />
+    </>
+  );
+}
+
+
+
+
+
+
+
+
