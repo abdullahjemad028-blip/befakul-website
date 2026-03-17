@@ -1,4 +1,3 @@
-import Header from "@/components/layout/Header";
 import type { Metadata } from "next";
 import { solaimanLipi, notoSansBengali } from "./fonts";
 import Footer from "@/components/layout/Footer";
@@ -26,57 +25,41 @@ export const metadata: Metadata = {
   creator: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
   publisher: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
   metadataBase: new URL("https://befaq.com.bd"),
-  // Fix 3 — Canonical + language alternates
   alternates: {
     canonical: "https://befaq.com.bd",
-    languages: {
-      "bn-BD": "https://befaq.com.bd",
-    },
+    languages: { "bn-BD": "https://befaq.com.bd" },
   },
   openGraph: {
-    type: "website",
-    locale: "bn_BD",
-    url: "https://befaq.com.bd",
-    siteName: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
-    title: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
+    type:      "website",
+    locale:    "bn_BD",
+    url:       "https://befaq.com.bd",
+    siteName:  "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
+    title:     "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
     description:
       "বাংলাদেশের কওমি মাদরাসা শিক্ষা বোর্ডের অফিসিয়াল ওয়েবসাইট।",
-    images: [
-      {
-        url: "/images/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
-      },
-    ],
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: { index: true, follow: true },
 };
 
-// Fix 1 — Organization structured data (JSON-LD)
 const organizationSchema = {
-  "@context": "https://schema.org",
-  "@type": "EducationalOrganization",
-  name: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
+  "@context":    "https://schema.org",
+  "@type":       "EducationalOrganization",
+  name:          "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
   alternateName: "Befaqul Madarisil Arabia Bangladesh",
-  url: "https://befaq.com.bd",
-  foundingDate: "1978",
-  description:
-    "বাংলাদেশের কওমি মাদরাসা শিক্ষাব্যবস্থার কেন্দ্রীয় তত্ত্বাবধায়ক বোর্ড",
+  url:           "https://befaq.com.bd",
+  foundingDate:  "1978",
+  description:   "বাংলাদেশের কওমি মাদরাসা শিক্ষাব্যবস্থার কেন্দ্রীয় তত্ত্বাবধায়ক বোর্ড",
   address: {
-    "@type": "PostalAddress",
-    streetAddress: "৩২, পুরানা পল্টন",
-    addressLocality: "ঢাকা",
-    postalCode: "1000",
-    addressCountry: "BD",
+    "@type":          "PostalAddress",
+    streetAddress:    "৩২, পুরানা পল্টন",
+    addressLocality:  "ঢাকা",
+    postalCode:       "1000",
+    addressCountry:   "BD",
   },
   contactPoint: {
-    "@type": "ContactPoint",
-    email: "info@befaq.com.bd",
-    contactType: "customer service",
+    "@type":       "ContactPoint",
+    email:         "info@befaq.com.bd",
+    contactType:   "customer service",
   },
 };
 
@@ -92,14 +75,9 @@ export default function RootLayout({
       className={`${solaimanLipi.variable} ${notoSansBengali.variable}`}
     >
       <body>
-
-        <Header />
-
-        
-        {/* Fix 2 — <main> removed from layout; lives only in page.tsx */}
+        {/* Header এখানে নেই — প্রতিটা layout আলাদাভাবে header রাখবে */}
         {children}
         <Footer />
-        {/* Fix 1 — JSON-LD injected globally, server-side, no client component */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -107,7 +85,6 @@ export default function RootLayout({
           }}
         />
       </body>
-
     </html>
   );
 }
