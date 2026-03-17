@@ -40,7 +40,7 @@ model Notice {
   title_bn    String
   body_bn     String    @db.Text
 
-  publishedAt DateTime
+  publishedAt DateTime?
   isPublished Boolean   @default(false)
 
   isPdf       Boolean   @default(false)
