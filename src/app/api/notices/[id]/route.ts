@@ -5,16 +5,17 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const { id } = params;
-
-  if (!id || typeof id !== "string") {
-    return NextResponse.json({ error: "Invalid notice ID" }, { status: 400 });
+  if (!params.id) {
+    return NextResponse.json(
+      { error: "Invalid notice ID" },
+      { status: 400 },
+    );
   }
 
   try {
     const notice = await prisma.notice.findFirst({
       where: {
-        id:          id,
+        id:          params.id,
         isPublished: true,
         deletedAt:   null,
       },
@@ -25,17 +26,21 @@ export async function GET(
         publishedAt: true,
         isPdf:       true,
         pdfUrl:      true,
+        category:    true,  // নতুন
+        imageUrl:    true,  // নতুন
       },
     });
 
     if (!notice) {
-      return NextResponse.json({ error: "Notice not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Notice not found" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json(notice, { status: 200 });
-
   } catch (error) {
-    console.error("[GET /api/notices/[id]] Database error:", error);
+    console.error("[GET /api/notices/[id]]", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

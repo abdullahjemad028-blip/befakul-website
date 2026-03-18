@@ -33,12 +33,14 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as {
-      title_bn:   string;
-      body_bn:    string;
-      isPdf:      boolean;
-      pdfUrl:     string | null;
-      publish:    boolean;
-    };
+  title_bn:   string;
+  body_bn:    string;
+  isPdf:      boolean;
+  pdfUrl:     string | null;
+  category:   string;   // নতুন
+  imageUrl:   string | null; // নতুন
+  publish:    boolean;
+};
 
     // Validate required fields
     if (!body.title_bn || body.title_bn.trim().length < 5) {
@@ -63,15 +65,17 @@ export async function POST(request: NextRequest) {
     }
 
     const notice = await prisma.notice.create({
-      data: {
-        title_bn:    body.title_bn.trim(),
-        body_bn:     body.body_bn.trim(),
-        isPdf:       body.isPdf ?? false,
-        pdfUrl:      body.isPdf ? (body.pdfUrl ?? null) : null,
-        isPublished: body.publish ?? false,
-        publishedAt: body.publish ? new Date() : null,
-      },
-    });
+  data: {
+    title_bn:    body.title_bn.trim(),
+    body_bn:     body.body_bn.trim(),
+    isPdf:       body.isPdf ?? false,
+    pdfUrl:      body.isPdf ? (body.pdfUrl ?? null) : null,
+    category:    (body.category ?? "GENERAL") as never,
+    imageUrl:    body.imageUrl?.trim() || null,
+    isPublished: body.publish ?? false,
+    publishedAt: body.publish ? new Date() : null,
+  },
+});
 
     return NextResponse.json({ data: notice }, { status: 201 });
   } catch (error) {

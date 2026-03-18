@@ -30,34 +30,44 @@ enum ExamLevel {
   OTHER
 }
 
+enum NoticeCategory {
+  EXAM          // পরীক্ষা সংক্রান্ত
+  REGISTRATION  // মাদরাসা নিবন্ধন
+  RESULT        // ফলাফল সংক্রান্ত
+  GENERAL       // সাধারণ নোটিশ
+  INTERNATIONAL // আন্তর্জাতিক বিষয়ক
+}
+
 // ============================================================
 // MODEL 1 — Notice
 // ============================================================
 
+
 model Notice {
-  id          String    @id @default(cuid())
-
+  id          String          @id @default(cuid())
   title_bn    String
-  body_bn     String    @db.Text
-
+  body_bn     String          @db.Text
   publishedAt DateTime?
-  isPublished Boolean   @default(false)
-
-  isPdf       Boolean   @default(false)
+  isPublished Boolean         @default(false)
+  isPdf       Boolean         @default(false)
   pdfUrl      String?
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  // নতুন fields
+  category    NoticeCategory  @default(GENERAL)
+  imageUrl    String?
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   deletedAt   DateTime?
 
   @@index([publishedAt])
   @@index([isPublished])
   @@index([deletedAt])
+  @@index([category])                           // নতুন index
   @@index([isPublished, publishedAt, deletedAt])
 
   @@map("notices")
 }
-
 // ============================================================
 // MODEL 2 — Exam
 // ============================================================
