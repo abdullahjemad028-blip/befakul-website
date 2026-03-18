@@ -20,6 +20,8 @@ export default async function EditNoticePage({ params }: PageProps) {
       body_bn:  true,
       isPdf:    true,
       pdfUrl:   true,
+      category: true,   // ← যোগ করা হয়েছে
+      imageUrl: true,   // ← যোগ করা হয়েছে
     },
   });
 
@@ -53,6 +55,8 @@ export default async function EditNoticePage({ params }: PageProps) {
               body_bn:  notice.body_bn,
               isPdf:    notice.isPdf,
               pdfUrl:   notice.pdfUrl ?? "",
+              category: notice.category ?? "GENERAL",   // ← যোগ করা হয়েছে
+              imageUrl: notice.imageUrl ?? "",           // ← যোগ করা হয়েছে
             }}
           />
         </div>
