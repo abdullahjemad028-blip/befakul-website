@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -15,13 +16,19 @@ interface MadrasaDetail {
 const BASE_URL  = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
 const SITE_NAME = "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ";
 
-async function fetchMadrasa(id: string): Promise<MadrasaDetail | null> {
+async function fetchMadrasa(id: string) {
   try {
-    const res = await fetch(`${BASE_URL}/api/madrasas/${id}`, {
-      cache: "no-store",
+    return await prisma.madrasa.findFirst({
+      where: { id, isActive: true, deletedAt: null },
+      select: {
+        id:              true,
+        name_bn:         true,
+        registrationNo:  true,
+        district:        true,
+        division:        true,
+        establishedYear: true,
+      },
     });
-    if (!res.ok) return null;
-    return (await res.json()) as MadrasaDetail;
   } catch {
     return null;
   }

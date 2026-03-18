@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-
+import { prisma } from "@/lib/prisma";
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -33,42 +33,59 @@ interface MadrasaResponse {
 type SearchParams = { [key: string]: string | string[] | undefined };
 
 // ✅ FIXED fetch function (dynamic host)
-async function fetchMadrasas(
-  params: SearchParams
-): Promise<MadrasaResponse | null> {
+
+
+
+
+async function fetchMadrasas(params: SearchParams) {
   try {
-    const headersList = headers();
-    const host = headersList.get("host"); // localhost:3001 / domain.com
-    const protocol = host?.includes("localhost") ? "http" : "https";
+    const page     = Math.max(1, parseInt(String(params.page ?? "1"), 10) || 1);
+    const search   = String(params.search   ?? "").trim();
+    const division = String(params.division ?? "").trim();
+    const district = String(params.district ?? "").trim();
+    const limit    = 20;
+    const skip     = (page - 1) * limit;
 
-    const baseUrl = `${protocol}://${host}`;
+    const where = {
+      isActive:  true,
+      deletedAt: null as null,
+      ...(search && {
+        OR: [
+          { name_bn:        { contains: search, mode: "insensitive" as const } },
+          { registrationNo: { contains: search, mode: "insensitive" as const } },
+        ],
+      }),
+      ...(division && { division }),
+      ...(district && { district }),
+    };
 
-    const page = String(params.page ?? "1");
-    const search = String(params.search ?? "");
-    const division = String(params.division ?? "");
-    const district = String(params.district ?? "");
+    const [total, madrasas] = await Promise.all([
+      prisma.madrasa.count({ where }),
+      prisma.madrasa.findMany({
+        where,
+        orderBy: { name_bn: "asc" },
+        skip,
+        take: limit,
+        select: {
+          id:             true,
+          name_bn:        true,
+          registrationNo: true,
+          district:       true,
+          division:       true,
+        },
+      }),
+    ]);
 
-    const query = new URLSearchParams();
-    query.set("page", page);
-    query.set("limit", "20");
-
-    if (search) query.set("search", search);
-    if (division) query.set("division", division);
-    if (district) query.set("district", district);
-
-    const res = await fetch(
-      `${baseUrl}/api/madrasas?${query.toString()}`,
-      { cache: "no-store" }
-    );
-
-    if (!res.ok) {
-      console.error("API ERROR:", res.status);
-      return null;
-    }
-
-    return (await res.json()) as MadrasaResponse;
-  } catch (err) {
-    console.error("FETCH ERROR:", err);
+    return {
+      data: madrasas,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch {
     return null;
   }
 }
