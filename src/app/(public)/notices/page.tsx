@@ -4,6 +4,7 @@ import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { NoticeCategory } from "@prisma/client"; // ← import যোগ করা হয়েছে
 import { getCategoryInfo } from "@/lib/notice-categories";
 import NoticeSearchFilter from "@/components/notices/NoticeSearchFilter";
 
@@ -24,14 +25,19 @@ async function fetchNotices(params: SearchParams) {
     const category = String(params.category ?? "").trim();
     const skip = (page - 1) * LIMIT;
 
+    // where object টি আপডেট করা হয়েছে
     const where = {
       isPublished: true,
-      deletedAt: null,
+      deletedAt: null as null,
       publishedAt: { lte: new Date() },
       ...(search && {
         title_bn: { contains: search, mode: "insensitive" as const },
       }),
-      ...(category && { category }), // ✅ এখানে 'as never' সরিয়ে শুধু category দেওয়া হয়েছে
+      // category চেক করা হচ্ছে যেন বৈধ NoticeCategory হয়
+      ...(category &&
+        Object.values(NoticeCategory).includes(category as NoticeCategory) && {
+          category: category as NoticeCategory,
+        }),
     };
 
     const [total, notices] = await Promise.all([
@@ -168,7 +174,7 @@ export default async function NoticesPage(props: { searchParams: SearchParams })
                           {catInfo.label}
                         </span>
 
-                        {/* Title - সংশোধিত অংশ শুরু */}
+                        {/* Title */}
                         {isExternal ? (
                           <a
                             href={href}
@@ -186,7 +192,6 @@ export default async function NoticesPage(props: { searchParams: SearchParams })
                             {notice.title_bn}
                           </Link>
                         )}
-                        {/* সংশোধিত অংশ শেষ */}
 
                         {/* Date */}
                         <time

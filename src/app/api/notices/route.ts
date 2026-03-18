@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { NoticeCategory } from "@prisma/client"; // ← যোগ করা হয়েছে
 
 const DEFAULT_PAGE  = 1;
 const DEFAULT_LIMIT = 10;
@@ -42,8 +43,10 @@ export async function GET(request: NextRequest) {
     ...(search && {
       title_bn: { contains: search, mode: "insensitive" as const },
     }),
-    // Category filter
-    ...(category && { category: category as never }),
+    // Category filter — শুধুমাত্র বৈধ ক্যাটাগরি হলে প্রয়োগ করা হবে
+    ...(category && Object.values(NoticeCategory).includes(category as NoticeCategory) && {
+      category: category as NoticeCategory,
+    }),
   };
 
   try {
@@ -62,8 +65,8 @@ export async function GET(request: NextRequest) {
           publishedAt: true,
           isPdf:       true,
           pdfUrl:      true,
-          category:    true,  // নতুন
-          imageUrl:    true,  // নতুন
+          category:    true,
+          imageUrl:    true,
         },
       }),
     ]);
