@@ -25,14 +25,14 @@ async function fetchNotice(id: string): Promise<NoticeDetail | null> {
     return await prisma.notice.findFirst({
       where: { id, isPublished: true, deletedAt: null },
       select: {
-        id: true,
-        title_bn: true,
-        body_bn: true,
+        id:          true,
+        title_bn:    true,
+        body_bn:     true,
         publishedAt: true,
-        isPdf: true,
-        pdfUrl: true,
-        category: true,
-        imageUrl: true,
+        isPdf:       true,
+        pdfUrl:      true,
+        category:    true,   // ← এটা missing ছিল
+        imageUrl:    true,   // ← এটা missing ছিল
       },
     });
   } catch {
