@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { solaimanLipi, notoSansBengali } from "./fonts";
-import Footer from "@/components/layout/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -75,9 +74,7 @@ export default function RootLayout({
       className={`${solaimanLipi.variable} ${notoSansBengali.variable}`}
     >
       <body>
-        {/* Header এখানে নেই — প্রতিটা layout আলাদাভাবে header রাখবে */}
         {children}
-        <Footer />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
