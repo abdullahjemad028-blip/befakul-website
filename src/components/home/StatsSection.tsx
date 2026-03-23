@@ -1,27 +1,29 @@
+import React from "react";
+
 type Stat = {
-  id: number;
+  id:    number;
   value: string;
   label: string;
 };
 
 const stats: Stat[] = [
   {
-    id: 1,
+    id:    1,
     value: "১৫,০০০+",
-    label: "অধিভুক্ত মাদরাসা",
+    label: "অধিভুক্ত মাদরাসা সংখ্যা",
   },
   {
-    id: 2,
+    id:    2,
     value: "২৫ লক্ষ+",
-    label: "শিক্ষার্থী",
+    label: "মোট শিক্ষার্থী",
   },
   {
-    id: 3,
+    id:    3,
     value: "১০+",
-    label: "বার্ষিক পরীক্ষা",
+    label: "বার্ষিক অনুষ্ঠিত পরীক্ষা",
   },
   {
-    id: 4,
+    id:    4,
     value: "১৯৭৮",
     label: "প্রতিষ্ঠাকাল",
   },
@@ -38,33 +40,36 @@ export default function StatsSection() {
 
         <h2
           id="stats-heading"
-          className="text-xl font-semibold text-gray-800 mb-8 text-center"
+          className="text-2xl font-bold text-gray-900 mb-8 text-center"
           style={{ fontFamily: "var(--font-bangla)" }}
         >
-            এক নজরে বেফাক
+          এক নজরে বেফাক
         </h2>
 
         <ul
-          className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4"
+          className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4"
           role="list"
         >
           {stats.map((stat) => (
             <li
               key={stat.id}
-              className="text-center"
+              className="rounded-lg bg-white px-4 py-6 text-center shadow-sm border border-gray-100"
             >
+              {/* Number */}
               <p
-                className="text-3xl md:text-4xl font-bold"
+                className="text-3xl sm:text-4xl font-bold leading-tight"
                 style={{
-                  color: "var(--color-primary)",
+                  color:      "var(--color-primary)",
                   fontFamily: "var(--font-bangla)",
                 }}
                 aria-label={`${stat.value} ${stat.label}`}
               >
                 {stat.value}
               </p>
+
+              {/* Label */}
               <p
-                className="mt-2 text-sm md:text-base text-gray-600"
+                className="mt-2 text-sm sm:text-base text-gray-600 leading-snug"
                 style={{ fontFamily: "var(--font-bangla)" }}
                 aria-hidden="true"
               >
