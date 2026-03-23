@@ -1,74 +1,81 @@
 export const dynamic = "force-dynamic";
 
-import React, { Suspense } from "react";
+import React, { Suspense, cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { NoticeCategory } from "@prisma/client"; // ← import যোগ করা হয়েছে
+import { NoticeCategory } from "@prisma/client";
 import { getCategoryInfo } from "@/lib/notice-categories";
 import NoticeSearchFilter from "@/components/notices/NoticeSearchFilter";
 
+// ── SEO ───────────────────────────────────────────────────────
 export const metadata: Metadata = {
   title: "নোটিশ বোর্ড | বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ",
   description:
     "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশের সকল নোটিশ, পরিপত্র ও বিজ্ঞপ্তি।",
 };
 
-type SearchParams = { [key: string]: string | string[] | undefined };
-
+// ── Constants ─────────────────────────────────────────────────
 const LIMIT = 10;
 
-async function fetchNotices(params: SearchParams) {
-  try {
-    const page = Math.max(1, parseInt(String(params.page ?? "1"), 10) || 1);
-    const search = String(params.search ?? "").trim();
-    const category = String(params.category ?? "").trim();
-    const skip = (page - 1) * LIMIT;
+// ── Types ─────────────────────────────────────────────────────
+type SearchParams = Record<string, string | string[] | undefined>;
 
-    // where object টি আপডেট করা হয়েছে
-    const where = {
-      isPublished: true,
-      deletedAt: null as null,
-      publishedAt: { lte: new Date() },
-      ...(search && {
-        title_bn: { contains: search, mode: "insensitive" as const },
-      }),
-      // category চেক করা হচ্ছে যেন বৈধ NoticeCategory হয়
-      ...(category &&
-        Object.values(NoticeCategory).includes(category as NoticeCategory) && {
-          category: category as NoticeCategory,
-        }),
-    };
+// ── Pure Data Fetching (cached per request) ──────────────────
+const getNotices = cache(async (params: SearchParams) => {
+  const page = Math.max(1, parseInt(String(params.page ?? "1"), 10) || 1);
+  const search = String(params.search ?? "").trim();
+  const category = String(params.category ?? "").trim();
+  const skip = (page - 1) * LIMIT;
 
-    const [total, notices] = await Promise.all([
-      prisma.notice.count({ where }),
-      prisma.notice.findMany({
-        where,
-        orderBy: { publishedAt: "desc" },
-        skip,
-        take: LIMIT,
-        select: {
-          id: true,
-          title_bn: true,
-          publishedAt: true,
-          isPdf: true,
-          pdfUrl: true,
-          category: true,
-          imageUrl: true,
-        },
-      }),
-    ]);
+  const validCategories = Object.values(NoticeCategory);
+  const categoryFilter = validCategories.includes(category as NoticeCategory)
+    ? (category as NoticeCategory)
+    : undefined;
 
-    return {
-      data: notices,
-      meta: { page, limit: LIMIT, total, totalPages: Math.ceil(total / LIMIT) },
-    };
-  } catch {
-    return null;
-  }
-}
+  const where = {
+    isPublished: true,
+    deletedAt: null,
+    publishedAt: { lte: new Date() },
+    ...(search && {
+      title_bn: { contains: search, mode: "insensitive" as const },
+    }),
+    ...(categoryFilter && { category: categoryFilter }),
+  };
 
-function formatDate(date: Date | string): string {
+  const [total, notices] = await Promise.all([
+    prisma.notice.count({ where }),
+    prisma.notice.findMany({
+      where,
+      orderBy: { publishedAt: "desc" },
+      skip,
+      take: LIMIT,
+      select: {
+        id: true,
+        title_bn: true,
+        publishedAt: true,
+        isPdf: true,
+        pdfUrl: true,
+        category: true,
+        imageUrl: true,
+      },
+    }),
+  ]);
+
+  return {
+    data: notices,
+    meta: {
+      page,
+      limit: LIMIT,
+      total,
+      totalPages: Math.ceil(total / LIMIT),
+    },
+  };
+});
+
+// ── Pure Formatting Helpers ──────────────────────────────────
+function formatDate(date: Date | string | null): string {
+  if (!date) return "—";
   return new Date(date).toLocaleDateString("bn-BD", {
     day: "numeric",
     month: "long",
@@ -76,20 +83,133 @@ function formatDate(date: Date | string): string {
   });
 }
 
+// ── Presentational Components ────────────────────────────────
+function NoticeItem({ notice }: { notice: Awaited<ReturnType<typeof getNotices>>["data"][0] }) {
+  const catInfo = getCategoryInfo(notice.category);
+  const isExternal = !!(notice.isPdf && notice.pdfUrl);
+  const href = isExternal ? notice.pdfUrl! : `/notices/${notice.id}`;
+
+  const linkProps = isExternal
+    ? { href, target: "_blank", rel: "noopener noreferrer" }
+    : { href };
+
+  return (
+    <li>
+      <article className="flex items-start justify-between gap-3 px-4 py-4 hover:bg-gray-50 transition-colors duration-100">
+        <div className="flex-1 min-w-0">
+          <span
+            className={`inline-block text-xs font-semibold px-2 py-0.5 rounded border mb-1.5 ${catInfo.color}`}
+          >
+            {catInfo.label}
+          </span>
+
+          <Link
+            {...linkProps}
+            className="text-base font-medium text-gray-800 hover:underline leading-snug block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+            style={{ outlineColor: "var(--color-primary)" }}
+          >
+            {notice.title_bn}
+            {isExternal && <span className="sr-only">(নতুন ট্যাবে খুলবে)</span>}
+          </Link>
+
+          <time
+            dateTime={String(notice.publishedAt)}
+            className="text-sm text-gray-500 mt-1 block"
+          >
+            {formatDate(notice.publishedAt)}
+          </time>
+        </div>
+
+        {notice.isPdf && (
+          <span
+            className="text-xs font-semibold px-2 py-0.5 rounded border shrink-0 mt-1"
+            style={{
+              color: "var(--color-primary)",
+              borderColor: "var(--color-primary)",
+              fontFamily: "var(--font-english)",
+            }}
+            aria-label="PDF ফাইল"
+          >
+            PDF
+          </span>
+        )}
+      </article>
+    </li>
+  );
+}
+
+function Pagination({
+  currentPage,
+  totalPages,
+  buildPageUrl,
+}: {
+  currentPage: number;
+  totalPages: number;
+  buildPageUrl: (page: number) => string;
+}) {
+  if (totalPages <= 1) return null;
+
+  return (
+    <nav
+      className="mt-8 flex items-center justify-between"
+      aria-label="পেজিনেশন নেভিগেশন"
+    >
+      {currentPage > 1 ? (
+        <Link
+          href={buildPageUrl(currentPage - 1)}
+          className="px-4 py-2 text-sm font-medium rounded border border-gray-300 text-gray-700 hover:bg-gray-50"
+          style={{ outlineColor: "var(--color-primary)" }}
+        >
+          {"← পূর্ববর্তী"}
+        </Link>
+      ) : (
+        <span className="px-4 py-2 text-sm rounded border border-gray-200 text-gray-300 cursor-not-allowed">
+          {"← পূর্ববর্তী"}
+        </span>
+      )}
+
+      <span className="text-sm text-gray-600">
+        {"পৃষ্ঠা "}
+        <span className="font-semibold">{currentPage}</span>
+        {" / "}
+        <span className="font-semibold">{totalPages}</span>
+      </span>
+
+      {currentPage < totalPages ? (
+        <Link
+          href={buildPageUrl(currentPage + 1)}
+          className="px-4 py-2 text-sm font-medium rounded border border-gray-300 text-gray-700 hover:bg-gray-50"
+          style={{ outlineColor: "var(--color-primary)" }}
+        >
+          {"পরবর্তী →"}
+        </Link>
+      ) : (
+        <span className="px-4 py-2 text-sm rounded border border-gray-200 text-gray-300 cursor-not-allowed">
+          {"পরবর্তী →"}
+        </span>
+      )}
+    </nav>
+  );
+}
+
+// ── Page Component ───────────────────────────────────────────
 export default async function NoticesPage(props: { searchParams: SearchParams }) {
   const { searchParams } = props;
-  const response = await fetchNotices(searchParams);
-  const currentPage = Math.max(1, parseInt(String(searchParams.page ?? "1"), 10) || 1);
-  const currentSearch = String(searchParams.search ?? "");
-  const currentCategory = String(searchParams.category ?? "");
 
-  function buildPageUrl(page: number): string {
+  // Fetch data (cached)
+  const response = await getNotices(searchParams);
+
+  // Helper to build pagination URLs
+  const buildPageUrl = (page: number): string => {
     const p = new URLSearchParams();
     p.set("page", String(page));
-    if (currentSearch) p.set("search", currentSearch);
-    if (currentCategory) p.set("category", currentCategory);
+    if (searchParams.search) p.set("search", String(searchParams.search));
+    if (searchParams.category) p.set("category", String(searchParams.category));
     return `/notices?${p.toString()}`;
-  }
+  };
+
+  const currentPage = response.meta.page;
+  const totalPages = response.meta.totalPages;
 
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: "var(--font-bangla)" }}>
@@ -102,7 +222,7 @@ export default async function NoticesPage(props: { searchParams: SearchParams })
                 হোম
               </Link>
             </li>
-            <li aria-hidden="true">›</li>
+            <li aria-hidden="true">{"›"}</li>
             <li className="text-gray-800 font-medium" aria-current="page">
               নোটিশ বোর্ড
             </li>
@@ -122,143 +242,35 @@ export default async function NoticesPage(props: { searchParams: SearchParams })
           <NoticeSearchFilter />
         </Suspense>
 
-        {/* Error */}
-        {response === null && (
-          <div className="py-16 text-center">
-            <p className="text-gray-500">তথ্য লোড করা সম্ভব হয়নি।</p>
-          </div>
-        )}
+        {/* Result count */}
+        <p className="text-sm text-gray-500 mb-4">
+          মোট{" "}
+          <span className="font-semibold text-gray-700">{response.meta.total}</span>
+          টি নোটিশ
+        </p>
 
-        {/* Empty */}
-        {response !== null && response.data.length === 0 && (
+        {/* Notice list */}
+        {response.data.length === 0 ? (
           <div className="py-16 text-center border border-gray-200 rounded">
             <p className="text-gray-500">কোনো নোটিশ পাওয়া যায়নি।</p>
           </div>
-        )}
-
-        {/* List */}
-        {response !== null && response.data.length > 0 && (
+        ) : (
           <section aria-labelledby="notices-heading">
             <h2 id="notices-heading" className="sr-only">
               নোটিশ তালিকা
             </h2>
 
-            <p className="text-sm text-gray-500 mb-4">
-              মোট{" "}
-              <span className="font-semibold text-gray-700">
-                {response.meta.total}
-              </span>
-              টি নোটিশ
-            </p>
-
-            <ul
-              className="divide-y divide-gray-200 border border-gray-200 rounded"
-              role="list"
-            >
-              {response.data.map((notice) => {
-                const catInfo = getCategoryInfo(notice.category);
-                const isExternal = !!(notice.isPdf && notice.pdfUrl);
-                const href = isExternal
-                  ? (notice.pdfUrl as string)
-                  : `/notices/${notice.id}`;
-
-                return (
-                  <li key={notice.id}>
-                    <article className="flex items-start justify-between gap-3 px-4 py-4 hover:bg-gray-50 transition-colors duration-100">
-                      <div className="flex-1 min-w-0">
-                        {/* Category badge */}
-                        <span
-                          className={`inline-block text-xs font-semibold px-2 py-0.5 rounded border mb-1.5 ${catInfo.color}`}
-                          style={{ fontFamily: "var(--font-bangla)" }}
-                        >
-                          {catInfo.label}
-                        </span>
-
-                        {/* Title */}
-                        {isExternal ? (
-                          <a
-                            href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-base font-medium text-gray-800 hover:underline leading-snug block"
-                          >
-                            {notice.title_bn}
-                          </a>
-                        ) : (
-                          <Link
-                            href={href}
-                            className="text-base font-medium text-gray-800 hover:underline leading-snug block"
-                          >
-                            {notice.title_bn}
-                          </Link>
-                        )}
-
-                        {/* Date */}
-                        <time
-                          dateTime={String(notice.publishedAt)}
-                          className="text-sm text-gray-500 mt-1 block"
-                        >
-                          {notice.publishedAt ? formatDate(notice.publishedAt) : "—"}
-                        </time>
-                      </div>
-
-                      {/* PDF badge */}
-                      {notice.isPdf && (
-                        <span
-                          className="text-xs font-semibold px-2 py-0.5 rounded border shrink-0 mt-1"
-                          style={{
-                            color: "var(--color-primary)",
-                            borderColor: "var(--color-primary)",
-                          }}
-                        >
-                          PDF
-                        </span>
-                      )}
-                    </article>
-                  </li>
-                );
-              })}
+            <ul className="divide-y divide-gray-200 border border-gray-200 rounded" role="list">
+              {response.data.map((notice) => (
+                <NoticeItem key={notice.id} notice={notice} />
+              ))}
             </ul>
 
-            {/* Pagination */}
-            {response.meta.totalPages > 1 && (
-              <nav
-                className="mt-8 flex items-center justify-between"
-                aria-label="পেজিনেশন"
-              >
-                {currentPage > 1 ? (
-                  <Link
-                    href={buildPageUrl(currentPage - 1)}
-                    className="px-4 py-2 text-sm font-medium rounded border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  >
-                    ← পূর্ববর্তী
-                  </Link>
-                ) : (
-                  <span className="px-4 py-2 text-sm rounded border border-gray-200 text-gray-300 cursor-not-allowed">
-                    ← পূর্ববর্তী
-                  </span>
-                )}
-
-                <span className="text-sm text-gray-600">
-                  পৃষ্ঠা{" "}
-                  <span className="font-semibold">{currentPage}</span> /{" "}
-                  <span className="font-semibold">{response.meta.totalPages}</span>
-                </span>
-
-                {currentPage < response.meta.totalPages ? (
-                  <Link
-                    href={buildPageUrl(currentPage + 1)}
-                    className="px-4 py-2 text-sm font-medium rounded border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  >
-                    পরবর্তী →
-                  </Link>
-                ) : (
-                  <span className="px-4 py-2 text-sm rounded border border-gray-200 text-gray-300 cursor-not-allowed">
-                    পরবর্তী →
-                  </span>
-                )}
-              </nav>
-            )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              buildPageUrl={buildPageUrl}
+            />
           </section>
         )}
       </main>
