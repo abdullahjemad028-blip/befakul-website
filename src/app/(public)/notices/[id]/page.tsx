@@ -157,7 +157,7 @@ export default async function NoticeDetailPage({
               {/* Action buttons */}
               <div className="flex items-center gap-2 no-print">
                 {/* Print button */}
-                <PrintButton />
+                <PrintButton noticeId={notice.id} />
 
                 {/* PDF button — সংশোধিত */}
                 {notice.isPdf && notice.pdfUrl && (

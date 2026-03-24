@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import React from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -19,10 +20,11 @@ async function getLatestNotices() {
       publishedAt: true,
       isPdf:       true,
       pdfUrl:      true,
+      category:    true,
+      imageUrl:    true,
     },
   });
 }
-
 function formatDateBangla(date: Date): string {
   return new Date(date).toLocaleDateString("bn-BD", {
     day:   "numeric",

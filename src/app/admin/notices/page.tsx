@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import LogoutButton from "@/components/admin/LogoutButton";
 import React from "react";
 import Link from "next/link";
@@ -17,9 +20,7 @@ function getStatus(notice: NoticeRow): {
   label: string;
   color: string;
 } {
-  if (notice.deletedAt !== null) {
-    return { label: "আর্কাইভড",   color: "bg-gray-100 text-gray-600" };
-  }
+  
   if (notice.isPublished) {
     return { label: "প্রকাশিত",   color: "bg-green-100 text-green-700" };
   }
@@ -159,7 +160,7 @@ export default async function AdminNoticesPage() {
                           <NoticeActionsClient
                             id={notice.id}
                             isPublished={notice.isPublished}
-                            isArchived={!!notice.deletedAt}
+                            
                           />
                         </td>
                       </tr>

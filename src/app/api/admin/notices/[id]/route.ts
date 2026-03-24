@@ -71,29 +71,30 @@ export async function PUT(
 
 // ── DELETE /api/admin/notices/[id] ───────────────────────────
 // Soft delete — sets deletedAt, never removes from DB
+// DELETE — Permanent delete (আগে soft delete ছিল)
 export async function DELETE(
   _request: NextRequest,
   { params }: RouteParams,
 ) {
   try {
     const existing = await prisma.notice.findFirst({
-      where: { id: params.id, deletedAt: null },
+      where: { id: params.id },
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Notice not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Notice not found" },
+        { status: 404 },
+      );
     }
 
-    await prisma.notice.update({
+    // Permanent delete — DB থেকে সম্পূর্ণ মুছে যাবে
+    await prisma.notice.delete({
       where: { id: params.id },
-      data: {
-        deletedAt:   new Date(),
-        isPublished: false,
-      },
     });
 
     return NextResponse.json(
-      { message: "Notice archived successfully" },
+      { message: "Notice permanently deleted" },
       { status: 200 },
     );
   } catch (error) {
